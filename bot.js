@@ -4,28 +4,30 @@ const axios = require("axios");
 const config = require("./config.json");
 const scrapeYad2 = require("./scrape");
 
-const SENT_FILE = path.join(__dirname, "sent.json");
-
-// קריאה לטוקן ו-chat_id מתוך GitHub Secrets
 const token = process.env.BOT_TOKEN;
 const chat_id = process.env.TELEGRAM_CHAT_ID;
 
-function loadSent() {
-  if (!fs.existsSync(SENT_FILE)) return { sent_ids: [] };
-  return JSON.parse(fs.readFileSync(SENT_FILE));
+function getSentFilePath(topic) {
+  return path.join(__dirname, "data", `sent-${topic}.json`);
 }
 
-function saveSent(data) {
-  fs.writeFileSync(SENT_FILE, JSON.stringify(data, null, 2));
+function loadSent(topic) {
+  const filePath = getSentFilePath(topic);
+  if (!fs.existsSync(filePath)) return { ids: [], images: [] };
+  return JSON.parse(fs.readFileSync(filePath));
+}
+
+function saveSent(topic, data) {
+  const filePath = getSentFilePath(topic);
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 }
 
 async function sendTelegramMessage(item, label) {
   const caption = `🔔 *${label}*\n${item.title}\n[צפייה במודעה](${item.link})`;
-
   const payload = {
     chat_id,
     caption,
-    parse_mode: "Markdown",
+    parse_mode: "Markdown"
   };
 
   if (item.image) {
@@ -39,23 +41,42 @@ async function sendTelegramMessage(item, label) {
 }
 
 (async () => {
-  const sentData = loadSent();
-  const sent = new Set(sentData.sent_ids);
+  if (!fs.existsSync("data")) fs.mkdirSync("data");
 
   for (const search of config.searches) {
+    const { topic, label, url } = search;
+    const sentData = loadSent(topic);
+    const sentIds = new Set(sentData.ids);
+    const sentImages = new Set(sentData.images);
+
     try {
-      const items = await scrapeYad2(search.url);
+      const items = await scrapeYad2(url);
+      const newItems = [];
 
       for (const item of items) {
-        if (!sent.has(item.id)) {
-          await sendTelegramMessage(item, search.label);
-          sent.add(item.id);
+        const uniqueImage = item.image?.split("?")[0];
+        if (!sentIds.has(item.id) && uniqueImage && !sentImages.has(uniqueImage)) {
+          await sendTelegramMessage(item, label);
+          sentIds.add(item.id);
+          sentImages.add(uniqueImage);
+          newItems.push(item);
         }
       }
+
+      saveSent(topic, {
+        ids: Array.from(sentIds),
+        images: Array.from(sentImages)
+      });
+
+      if (newItems.length === 0) {
+        console.log(`✅ [${topic}] אין פריטים חדשים`);
+      }
     } catch (err) {
-      console.error("❌ Error in search:", search.label, err.message);
+      console.error(`❌ שגיאה ב-${topic}:`, err.message);
+      await axios.post(`https://api.telegram.org/bot${token}/sendMessage`, {
+        chat_id,
+        text: `❗ שגיאה בסריקת "${label}": ${err.message}`
+      });
     }
   }
-
-  saveSent({ sent_ids: Array.from(sent) });
 })();

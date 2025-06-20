@@ -1,22 +1,27 @@
 {
   "searches": [
     {
+      "topic": "herzliya_ramat_gan",
       "label": "🏡 הרצליה ורמת השרון – דירות גן וגג",
       "url": "https://www.yad2.co.il/realestate/rent?minPrice=1000&maxPrice=11000&minRooms=3&property=3%2C6&multiCity=6400%2C2650"
     },
     {
+      "topic": "rishon_garden",
       "label": "🏡 ראשון לציון – דירות גן וגג",
       "url": "https://www.yad2.co.il/realestate/rent?minPrice=1000&maxPrice=11000&minRooms=3&property=3%2C6&topArea=2&area=9&city=8300"
     },
     {
+      "topic": "north_telaviv",
       "label": "🏙️ צפון תל אביב",
       "url": "https://www.yad2.co.il/realestate/rent?minPrice=2000&maxPrice=10000&minRooms=3&parking=1&balcony=1&multiNeighborhood=195%2C1515%2C481%2C203%2C197"
     },
     {
+      "topic": "galil_yam_all",
       "label": "🌿 גליל ים – כל הדירות",
       "url": "https://www.yad2.co.il/realestate/rent?minPrice=2000&maxPrice=10000&minRooms=3&topArea=19&area=18&city=6400&neighborhood=991416"
     },
     {
+      "topic": "galil_yam_garden",
       "label": "🌿 גליל ים – גן או גג",
       "url": "https://www.yad2.co.il/realestate/rent?minPrice=2000&maxPrice=11000&property=3%2C6&topArea=19&area=18&city=6400&neighborhood=991416"
     }
