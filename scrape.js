@@ -4,7 +4,7 @@ const cheerio = require("cheerio");
 async function scrapeYad2(url) {
   const results = [];
   const { data } = await axios.get(url, {
-    headers: { "User-Agent": "Mozilla/5.0" }
+    headers: {   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" }
   });
 
   const $ = cheerio.load(data);
