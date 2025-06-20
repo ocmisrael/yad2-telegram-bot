@@ -1,34 +1,44 @@
-const axios = require("axios");
-const cheerio = require("cheerio");
+import { chromium } from "playwright";
 
-async function scrapeYad2(url) {
+export default async function scrapeYad2(url) {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
   const results = [];
-  const { data } = await axios.get(url, {
-    headers: {   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36" }
-  });
 
-  const $ = cheerio.load(data);
+  try {
+    await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
 
-  if ($("title").text().includes("ShieldSquare Captcha")) {
-    throw new Error("Bot was blocked by ShieldSquare (captcha)");
-  }
-
-  $(".feeditem").each((i, el) => {
-    const link = $(el).attr("href");
-    const title = $(el).find(".title").text().trim();
-    const image = $(el).find("img").attr("data-src") || $(el).find("img").attr("src") || "";
-    if (link && title) {
-      const id = link.split("/").pop().split("?")[0];
-      results.push({
-        id,
-        title,
-        link: "https://www.yad2.co.il" + link,
-        image,
-      });
+    const title = await page.title();
+    if (title.includes("ShieldSquare Captcha")) {
+      throw new Error("Blocked by ShieldSquare CAPTCHA");
     }
-  });
+
+    const items = await page.$$eval(".feeditem", (nodes) => {
+      return nodes.map((el) => {
+        const link = el.getAttribute("href");
+        const titleEl = el.querySelector(".title");
+        const title = titleEl ? titleEl.innerText.trim() : null;
+        const imgEl = el.querySelector("img");
+        const image = imgEl?.getAttribute("data-src") || imgEl?.getAttribute("src") || null;
+        if (!link || !title) return null;
+
+        const id = link.split("/").pop().split("?")[0];
+        return {
+          id,
+          title,
+          link: "https://www.yad2.co.il" + link,
+          image,
+        };
+      }).filter(Boolean);
+    });
+
+    results.push(...items);
+  } catch (err) {
+    console.error("❌ Scrape error:", err.message);
+    throw err;
+  } finally {
+    await browser.close();
+  }
 
   return results;
 }
-
-module.exports = scrapeYad2;
