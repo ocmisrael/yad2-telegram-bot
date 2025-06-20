@@ -1,0 +1,10 @@
+{
+  "name": "yad2-telegram-bot",
+  "version": "1.0.0",
+  "main": "bot.js",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12"
+  }
+}
