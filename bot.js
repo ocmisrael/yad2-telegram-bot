@@ -6,6 +6,10 @@ const scrapeYad2 = require("./scrape");
 
 const SENT_FILE = path.join(__dirname, "sent.json");
 
+// קריאה לטוקן ו-chat_id מתוך GitHub Secrets
+const token = process.env.BOT_TOKEN;
+const chat_id = process.env.TELEGRAM_CHAT_ID;
+
 function loadSent() {
   if (!fs.existsSync(SENT_FILE)) return { sent_ids: [] };
   return JSON.parse(fs.readFileSync(SENT_FILE));
@@ -16,8 +20,6 @@ function saveSent(data) {
 }
 
 async function sendTelegramMessage(item, label) {
-  const { token, chat_id } = config.telegram;
-
   const caption = `🔔 *${label}*\n${item.title}\n[צפייה במודעה](${item.link})`;
 
   const payload = {
